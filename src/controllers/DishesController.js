@@ -6,7 +6,15 @@ class DishesController {
         const { picture, name, description, price, ingredients } = request.body
         const { user_id } = request.params
 
-        await knex("dishes").insert({ picture, name, description, price })
+      
+        await knex("dishes").insert(
+            { 
+                picture, 
+                name, 
+                description, 
+                price,
+                user_id
+            })
 
         response.status(201).json()
     }
