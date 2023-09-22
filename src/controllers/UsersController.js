@@ -22,15 +22,13 @@ class UsersController {
     async update(request, response) {
         const { name, email, password, old_password } = request.body
         const { id } = request.params
-
-        const database = await knex()
-        const user = await database.get("SELECT * FROM users WHERE id = (?)", [id])
+        const user = await knex("users").where({id}).first()
 
         if(!user) {
             throw new AppError("Usuário não encontrado")
         }
 
-        const userWithUpdateEmail = await database.get("SELECT * FROM users WHERE email = (?)", [email])
+        const userWithUpdateEmail = await knex("users").where({email}).first()
 
         if(userWithUpdateEmail && userWithUpdateEmail.id !== user.id) {
             throw new AppError("Este e-mail existe")
@@ -48,19 +46,20 @@ class UsersController {
 
             user.password = await hash(password, 8)
         }
-
-        await database.run(`
-            UPDATE users SET
-            name = ?,
-            email = ?,
-            password = ?,
-            updated_at = DATETIME('now')
-            WHERE id = ?`,
-            [user.name, user.email, user.password, id]    
-        )
+        
+        await knex('users')
+        .where({ id })
+        .update({
+            name: user.name,
+            email: user.email,
+            password: user.password,
+            updated_at: knex.raw('DATETIME("now")')
+        })
+        .catch(error => {
+            throw new AppError('Ocorreu um erro durante a atualização:', error)
+        })
 
         response.status(201).json()
-
     }
 }
 
