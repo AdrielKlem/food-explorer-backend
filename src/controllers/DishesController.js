@@ -5,9 +5,8 @@ class DishesController {
     async create(request, response) {
         const { picture, name, description, price, ingredients } = request.body
         const { user_id } = request.params
-
-      
-        await knex("dishes").insert(
+     
+        const [dish_id] = await knex("dishes").insert(
             { 
                 picture, 
                 name, 
@@ -15,6 +14,16 @@ class DishesController {
                 price,
                 user_id
             })
+
+        const ingredientsInsert = ingredients.map(ingredient => {
+            return {
+                name: ingredient,
+                dish_id,
+                user_id
+            }
+        })
+
+        await knex("ingredients").insert(ingredientsInsert)
 
         response.status(201).json()
     }
