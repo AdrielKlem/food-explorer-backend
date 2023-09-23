@@ -5,6 +5,7 @@ const dishesController = new DishesController()
 const dishesRoutes = Router()
 
 dishesRoutes.get("/", dishesController.index)
+dishesRoutes.get("/:id", dishesController.show)
 dishesRoutes.post("/:user_id", dishesController.create)
 dishesRoutes.put("/", dishesController.update)
 dishesRoutes.delete("/:id", dishesController.delete)
