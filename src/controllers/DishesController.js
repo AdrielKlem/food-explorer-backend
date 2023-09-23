@@ -48,15 +48,11 @@ class DishesController {
         userdish.category = category || userdish.category;
 
          try {
-            // Start a transaction
             await knex.transaction(async (trx) => {
-                // Update the dish in the "dishes" table
                 await trx("dishes").where({ id }).update(userdish);
 
-                // Remove existing ingredients for this dish
                 await trx("ingredients").where({ user_id, dish_id: id }).del();
 
-                // Insert new ingredients if provided
                 if (ingredients) {
                     const newIngredients = ingredients.map((ingredient) => ({
                     user_id,
@@ -120,7 +116,19 @@ class DishesController {
                         break
                 }
             };
-            response.status(200).json(dishesByCategory);
+            response.status(200).json("Request Sucefully");
+        } catch (error) {
+            response.status(500).json({ error: "An error occurred during the update", details: error.message });
+        }
+    }
+
+    async delete(request, response) {
+        try {
+            const { id } = request.params
+            
+            await knex("dishes").where({ id }).delete()
+            
+            return response.json()
         } catch (error) {
             response.status(500).json({ error: "An error occurred during the update", details: error.message });
         }
