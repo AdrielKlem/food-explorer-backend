@@ -112,8 +112,6 @@ class DishesController {
                 return ingredients.filter((ingredient) => ingredient.dish_id === dish.id);
             }
 
-
-            // Organize dishes into categories
             for (const dish of dishes) {
                 switch (dish.category) {
                     case "Refeição":
@@ -121,7 +119,7 @@ class DishesController {
                         const dishIngredientsMeal = await chooseCategory(dish, "Refeição")
                         dishesByCategory.Refeicao.push({
                             ...dish,
-                            ingredients: dishIngredientsMeal, // Initialize with an empty array
+                            ingredients: dishIngredientsMeal,
                         });
                         break
                     case "Sobremesa":
@@ -137,7 +135,7 @@ class DishesController {
 
                         dishesByCategory.Lanche.push({
                             ...dish,
-                            ingredients: dishIngredientsSnack, // Initialize with an empty array
+                            ingredients: dishIngredientsSnack,
                         });
                         break
                 }
