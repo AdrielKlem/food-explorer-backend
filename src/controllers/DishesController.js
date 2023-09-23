@@ -48,12 +48,10 @@ class DishesController {
         userdish.category = category || userdish.category;
 
         try {
-            // Update the dish in the "dishes" table
             await knex('dishes')
             .where({ id })
             .update(userdish);
 
-            // Update ingredients if provided
             if (ingredients) {
             await Promise.all(
                 ingredients.map(async (ingredient) => {
