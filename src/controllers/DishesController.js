@@ -70,7 +70,8 @@ class DishesController {
 
     async index(request, response) {
         try {
-            const dishes = await knex("dishes").select("*");
+            const { name } = request.query
+            const dishes = await knex("dishes").whereLike("name",`%${name}%`).select("*");
             const dishesByCategory = {
             Refeicao: [],
             Sobremesa: [],
@@ -116,7 +117,7 @@ class DishesController {
                         break
                 }
             };
-            response.status(200).json("Request Sucefully");
+            response.status(200).json(dishesByCategory);
         } catch (error) {
             response.status(500).json({ error: "An error occurred during the update", details: error.message });
         }
