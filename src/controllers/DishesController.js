@@ -12,7 +12,7 @@ class DishesController {
                 name, 
                 description, 
                 price,
-                category,
+                category: category ?? "Refeição",
                 user_id
             })
 
@@ -30,7 +30,44 @@ class DishesController {
     }
 
     async update(request, response) {
-        response.status(201).json()
+        const { id, user_id } = request.query;
+
+        const userdish = await knex("dishes").where({ id }).first();
+
+        if (!userdish) {
+            return response.status(404).json({ error: "Dish not found" });
+        }
+
+
+        const { picture, name, description, price, category, ingredients } = request.body;
+
+        userdish.picture = picture || userdish.picture;
+        userdish.name = name || userdish.name;
+        userdish.description = description || userdish.description;
+        userdish.price = price || userdish.price;
+        userdish.category = category || userdish.category;
+
+        try {
+            // Update the dish in the "dishes" table
+            await knex('dishes')
+            .where({ id })
+            .update(userdish);
+
+            // Update ingredients if provided
+            if (ingredients) {
+            await Promise.all(
+                ingredients.map(async (ingredient) => {
+                await knex('ingredients')
+                    .where({ user_id, dish_id: id })
+                    .update({ user_id, dish_id: id, name: ingredient });
+                })
+            );
+            }
+
+            return response.status(200).json({ message: "Dish updated successfully" });
+        } catch (error) {
+            return response.status(500).json({ error: "An error occurred during the update", details: error.message });
+        }
     }
 }
 
