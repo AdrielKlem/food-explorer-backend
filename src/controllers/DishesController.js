@@ -71,6 +71,16 @@ class DishesController {
             return response.status(500).json({ error: "An error occurred during the update", details: error.message });
         }
     }
+
+    
+    async index(request, response) {
+        const dishes = await knex("dishes")
+        const dishesMeal  = dishes.filter(dish => dish.category === "Refeição")
+        const dishesSnack  = dishes.filter(dish => dish.category === "Lanche")
+        const dishesSugar  = dishes.filter(dish => dish.category === "Sobremesa")
+        
+        response.status(200).json(dishesSugar);
+    }
 }
 
 module.exports = DishesController
