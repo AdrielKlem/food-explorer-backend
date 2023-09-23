@@ -73,13 +73,79 @@ class DishesController {
     }
 
     
-    async index(request, response) {
-        const dishes = await knex("dishes")
-        const dishesMeal  = dishes.filter(dish => dish.category === "Refeição")
-        const dishesSnack  = dishes.filter(dish => dish.category === "Lanche")
-        const dishesSugar  = dishes.filter(dish => dish.category === "Sobremesa")
+    // async index(request, response) {
+    //     const dishes = await knex("dishes")
+    //     const ingredients = await knex("ingredients")
+    //     const dishesMeal  = dishes.filter(dish => dish.category === "Refeição")
+    //     const dishesSnack  = dishes.filter(dish => dish.category === "Lanche")
+    //     const dishesSugar  = dishes.filter(async (dish) => 
+    //         {
+    //             try {
+    //                 if (dish.category === "Sobremesa") {
+    //                    return dish.ingredients = await ingredients.where({ dish_id: dish.id })
+    //                }
+    //             } catch (error) {
+    //                 return response.status(500).json({ error: "An error occurred during the update", details: error.message });
+    //             }
+    //         })
         
-        response.status(200).json(dishesSugar);
+    //     response.status(200).json(dishesSugar);
+    // }
+
+    async index(request, response) {
+        try {
+            const dishes = await knex("dishes").select("*");
+            const dishesByCategory = {
+            Refeicao: [],
+            Sobremesa: [],
+            Lanche: [],
+            };
+
+            async function chooseCategory(dish, Category = "Refeição") {
+                const dishCategory = dishes
+                .filter((dish) => dish.category === Category)
+                .map((dish) => dish.id);
+
+                const ingredients = await knex("ingredients")
+                .whereIn("dish_id", dishCategory);
+
+                return ingredients.filter((ingredient) => ingredient.dish_id === dish.id);
+            }
+
+
+            // Organize dishes into categories
+            for (const dish of dishes) {
+                switch (dish.category) {
+                    case "Refeição":
+
+                        const dishIngredientsMeal = await chooseCategory(dish, "Refeição")
+                        dishesByCategory.Refeicao.push({
+                            ...dish,
+                            ingredients: dishIngredientsMeal, // Initialize with an empty array
+                        });
+                        break
+                    case "Sobremesa":
+                        const dishIngredientsSugar = await chooseCategory(dish, "Sobremesa")
+                        
+                        dishesByCategory.Sobremesa.push({
+                            ...dish,
+                            ingredients: dishIngredientsSugar,
+                        });
+                        break
+                    case "Lanche":
+                        const dishIngredientsSnack = await chooseCategory(dish, "Lanche")
+
+                        dishesByCategory.Lanche.push({
+                            ...dish,
+                            ingredients: dishIngredientsSnack, // Initialize with an empty array
+                        });
+                        break
+                }
+            };
+            response.status(200).json(dishesByCategory);
+        } catch (error) {
+            response.status(500).json({ error: "An error occurred during the update", details: error.message });
+        }
     }
 }
 
