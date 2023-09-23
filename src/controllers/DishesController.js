@@ -72,26 +72,6 @@ class DishesController {
         }
     }
 
-    
-    // async index(request, response) {
-    //     const dishes = await knex("dishes")
-    //     const ingredients = await knex("ingredients")
-    //     const dishesMeal  = dishes.filter(dish => dish.category === "Refeição")
-    //     const dishesSnack  = dishes.filter(dish => dish.category === "Lanche")
-    //     const dishesSugar  = dishes.filter(async (dish) => 
-    //         {
-    //             try {
-    //                 if (dish.category === "Sobremesa") {
-    //                    return dish.ingredients = await ingredients.where({ dish_id: dish.id })
-    //                }
-    //             } catch (error) {
-    //                 return response.status(500).json({ error: "An error occurred during the update", details: error.message });
-    //             }
-    //         })
-        
-    //     response.status(200).json(dishesSugar);
-    // }
-
     async index(request, response) {
         try {
             const dishes = await knex("dishes").select("*");
