@@ -47,21 +47,25 @@ class DishesController {
         userdish.price = price || userdish.price;
         userdish.category = category || userdish.category;
 
-        try {
-            await knex('dishes')
-            .where({ id })
-            .update(userdish);
+         try {
+            // Start a transaction
+            await knex.transaction(async (trx) => {
+                // Update the dish in the "dishes" table
+                await trx("dishes").where({ id }).update(userdish);
 
-            if (ingredients) {
-                await Promise.all(
-                    ingredients.map(async (ingredient) => {
-                    await knex('ingredients')
-                        .where({ user_id, dish_id: id })
-                        .update({ user_id, dish_id: id, name: ingredient });
-                    })
-                );
-            }
+                // Remove existing ingredients for this dish
+                await trx("ingredients").where({ user_id, dish_id: id }).del();
 
+                // Insert new ingredients if provided
+                if (ingredients) {
+                    const newIngredients = ingredients.map((ingredient) => ({
+                    user_id,
+                    dish_id: id,
+                    name: ingredient,
+                    }));
+                    await trx("ingredients").insert(newIngredients);
+                }
+            });
             return response.status(200).json({ message: "Dish updated successfully" });
         } catch (error) {
             return response.status(500).json({ error: "An error occurred during the update", details: error.message });
