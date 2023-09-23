@@ -53,13 +53,13 @@ class DishesController {
             .update(userdish);
 
             if (ingredients) {
-            await Promise.all(
-                ingredients.map(async (ingredient) => {
-                await knex('ingredients')
-                    .where({ user_id, dish_id: id })
-                    .update({ user_id, dish_id: id, name: ingredient });
-                })
-            );
+                await Promise.all(
+                    ingredients.map(async (ingredient) => {
+                    await knex('ingredients')
+                        .where({ user_id, dish_id: id })
+                        .update({ user_id, dish_id: id, name: ingredient });
+                    })
+                );
             }
 
             return response.status(200).json({ message: "Dish updated successfully" });
