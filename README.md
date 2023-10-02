@@ -1,1 +1,0 @@
-# Desafio Final - Food Explorer

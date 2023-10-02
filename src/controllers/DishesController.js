@@ -11,14 +11,10 @@ class DishesController {
     
         const ingredientsArray = ingredients.split(',');
 
-        console.log(typeof ingredientsArray)
-
-
         if(checkDishAlreadyExists){
             throw new AppError("Este prato já existe no cardápio.")
         }
-        
-    
+
         const pictureFileName = request.file.filename ?? null ;
         const diskStorage = new DiskStorage()
         const filename = await diskStorage.saveFile(pictureFileName);
