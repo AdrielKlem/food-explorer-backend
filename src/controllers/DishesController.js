@@ -100,11 +100,11 @@ class DishesController {
                         });
                         break
                     case "Sobremesa":
-                        const dishIngredientsSugar = await chooseCategory(dish, "Sobremesa")
+                        const dishIngredientsDessert = await chooseCategory(dish, "Sobremesa")
                         
                         dishesByCategory.Sobremesa.push({
                             ...dish,
-                            ingredients: dishIngredientsSugar,
+                            ingredients: dishIngredientsDessert,
                         });
                         break
                     case "Lanche":
