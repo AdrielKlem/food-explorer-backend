@@ -4,7 +4,7 @@ const AppError = require("../utils/AppError")
 class DishesController {
     async create(request, response) {
         const { picture, name, description, price, category, ingredients } = request.body
-        const { user_id } = request.params
+        const user_id = request.user.id
      
         const [dish_id] = await knex("dishes").insert(
             { 
@@ -124,10 +124,10 @@ class DishesController {
     }
 
     async show(request, response) {
-        const { id } = request.params
+        const user_id = request.user.id
 
         const dish = await knex("dishes").where({ id }).first()
-        const ingredients = await knex("ingredients").where({ dish_id: id }).select("*")
+        const ingredients = await knex("ingredients").where({ dish_id: user_id }).select("*")
 
         return response.json({
             ...dish,
@@ -137,9 +137,9 @@ class DishesController {
 
     async delete(request, response) {
         try {
-            const { id } = request.params
+            const user_id = request.user.id
             
-            await knex("dishes").where({ id }).delete()
+            await knex("dishes").where({ user_id }).delete()
             
             return response.json()
         } catch (error) {
