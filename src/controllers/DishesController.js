@@ -1,14 +1,31 @@
 const knex = require("../database/knex")
 const AppError = require("../utils/AppError")
+const DiskStorage = require("../providers/DiskStorage")
 
 class DishesController {
     async create(request, response) {
-        const { picture, name, description, price, category, ingredients } = request.body
+        const { name, description, price, category, ingredients } = request.body
         const user_id = request.user.id
-     
+
+        const checkDishAlreadyExists = await knex("dishes").where({name}).first();
+    
+        const ingredientsArray = ingredients.split(',');
+
+        console.log(typeof ingredientsArray)
+
+
+        if(checkDishAlreadyExists){
+            throw new AppError("Este prato já existe no cardápio.")
+        }
+        
+    
+        const pictureFileName = request.file.filename ?? null ;
+        const diskStorage = new DiskStorage()
+        const filename = await diskStorage.saveFile(pictureFileName);
+
         const [dish_id] = await knex("dishes").insert(
             { 
-                picture, 
+                picture:filename, 
                 name, 
                 description, 
                 price,
@@ -16,7 +33,7 @@ class DishesController {
                 user_id
             })
 
-        const ingredientsInsert = ingredients.map(ingredient => {
+        const ingredientsInsert = ingredientsArray.map(ingredient => {
             return {
                 name: ingredient,
                 dish_id,
@@ -32,20 +49,27 @@ class DishesController {
     async update(request, response) {
         const { id, user_id } = request.query;
 
+        const imageFileName = request.file.filename
+        const diskStorage = new DiskStorage()
         const userdish = await knex("dishes").where({ id }).first();
 
         if (!userdish) {
             return response.status(404).json({ error: "Dish not found" });
         }
 
+        if (dish.picture) {
+          await diskStorage.deleteFile(dish.picture);
+        }
 
-        const { picture, name, description, price, category, ingredients } = request.body;
+        const filename = await diskStorage.saveFile(imageFileName)
 
-        userdish.picture = picture || userdish.picture;
-        userdish.name = name || userdish.name;
-        userdish.description = description || userdish.description;
-        userdish.price = price || userdish.price;
-        userdish.category = category || userdish.category;
+        const { name, description, price, category, ingredients } = request.body;
+
+        userdish.picture = picture ?? filename;
+        userdish.name = name ?? userdish.name;
+        userdish.description = description ?? userdish.description;
+        userdish.price = price ?? userdish.price;
+        userdish.category = category ?? userdish.category;
 
          try {
             await knex.transaction(async (trx) => {
