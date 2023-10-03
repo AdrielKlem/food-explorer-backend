@@ -90,54 +90,45 @@ class DishesController {
 
     async index(request, response) {
         try {
-            const { name } = request.query
-            const dishes = await knex("dishes").whereLike("name",`%${name}%`).select("*");
-            const dishesByCategory = {
-            Refeicao: [],
-            Sobremesa: [],
-            Lanche: [],
-            };
+            const { name, ingredients } = request.query;
+                
+            // Listing Dishes and Ingredients at the same time (innerJoin)
+            let dishes;
 
-            async function chooseCategory(dish, Category = "Refeição") {
-                const dishCategory = dishes
-                .filter((dish) => dish.category === Category)
-                .map((dish) => dish.id);
-
-                const ingredients = await knex("ingredients")
-                .whereIn("dish_id", dishCategory);
-
-                return ingredients.filter((ingredient) => ingredient.dish_id === dish.id);
+            if (ingredients) {
+                const filterIngredients = ingredients.split(',').map(ingredient => ingredient.trim());
+                
+                dishes = await knex("ingredients")
+                    .select([
+                        "dishes.id",
+                        "dishes.name",
+                        "dishes.description",
+                        "dishes.category",
+                        "dishes.price",
+                        "dishes.picture",
+                    ])
+                    .whereLike("dishes.name", `%${name}%`)
+                    .whereIn("ingredients.name", filterIngredients)
+                    .innerJoin("dishes", "dishes.id", "ingredients.dish_id")
+                    .groupBy("dishes.id")
+                    .orderBy("dishes.name")
+            } else {
+                dishes = await knex("dishes")
+                    .whereLike("name", `%${name}%`)
+                    .orderBy("name");
             }
-
-            for (const dish of dishes) {
-                switch (dish.category) {
-                    case "Refeição":
-
-                        const dishIngredientsMeal = await chooseCategory(dish, "Refeição")
-                        dishesByCategory.Refeicao.push({
-                            ...dish,
-                            ingredients: dishIngredientsMeal,
-                        });
-                        break
-                    case "Sobremesa":
-                        const dishIngredientsDessert = await chooseCategory(dish, "Sobremesa")
-                        
-                        dishesByCategory.Sobremesa.push({
-                            ...dish,
-                            ingredients: dishIngredientsDessert,
-                        });
-                        break
-                    case "Lanche":
-                        const dishIngredientsSnack = await chooseCategory(dish, "Lanche")
-
-                        dishesByCategory.Lanche.push({
-                            ...dish,
-                            ingredients: dishIngredientsSnack,
-                        });
-                        break
+            
+            const dishesIngredients = await knex("ingredients") 
+            const dishesWithIngredients = dishes.map(dish => {
+                const dishIngredient = dishesIngredients.filter(ingredient => ingredient.dish_id === dish.id);
+        
+                return {
+                    ...dish,
+                    ingredients: dishIngredient
                 }
-            };
-            response.status(200).json(dishesByCategory);
+            })
+            
+            return response.status(200).json(dishesWithIngredients);
         } catch (error) {
             response.status(500).json({ error: "An error occurred during the update", details: error.message });
         }
