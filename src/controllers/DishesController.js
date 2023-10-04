@@ -135,10 +135,10 @@ class DishesController {
     }
 
     async show(request, response) {
-        const user_id = request.user.id
+        const { id } = request.params
 
         const dish = await knex("dishes").where({ id }).first()
-        const ingredients = await knex("ingredients").where({ dish_id: user_id }).select("*")
+        const ingredients = await knex("ingredients").where({ dish_id: id }).select("*")
 
         return response.json({
             ...dish,
