@@ -6,6 +6,7 @@ class DishesController {
     async create(request, response) {
         const { name, description, price, category, ingredients } = request.body
         const user_id = request.user.id
+        console.log(request)
 
         const checkDishAlreadyExists = await knex("dishes").where({name}).first();
     
@@ -43,50 +44,57 @@ class DishesController {
     }
 
     async update(request, response) {
-        const { id, user_id } = request.query;
+        const { name, description, price, category, ingredients } = request.body;
+        const { id } = request.params;
 
-        const imageFileName = request.file.filename
-        const diskStorage = new DiskStorage()
-        const userdish = await knex("dishes").where({ id }).first();
+        const diskStorage = new DiskStorage();
+        const dish = await knex("dishes").where({ id }).first();
 
-        if (!userdish) {
+        const ingredientsArray = ingredients.split(',');
+
+        if (!dish) {
             return response.status(404).json({ error: "Dish not found" });
         }
 
-        if (dish.picture) {
-          await diskStorage.deleteFile(dish.picture);
+        if (request.file) {
+            // Se uma nova imagem for fornecida na requisição
+            const pictureFileName = request.file.filename;
+
+            // Excluir a imagem antiga, se houver
+            if (dish.picture) {
+            await diskStorage.deleteFile(dish.picture);
+            }
+
+            // Salvar a nova imagem e atualizar o nome no prato
+            const filename = await diskStorage.saveFile(pictureFileName);
+            dish.picture = filename;
         }
 
-        const filename = await diskStorage.saveFile(imageFileName)
+        // Atualizar os outros campos do prato
+        dish.name = name ?? dish.name;
+        dish.description = description ?? dish.description;
+        dish.price = price ?? dish.price;
+        dish.category = category ?? dish.category;
 
-        const { name, description, price, category, ingredients } = request.body;
+        await knex("dishes").where({ id }).update(dish);
 
-        userdish.picture = picture ?? filename;
-        userdish.name = name ?? userdish.name;
-        userdish.description = description ?? userdish.description;
-        userdish.price = price ?? userdish.price;
-        userdish.category = category ?? userdish.category;
-
-         try {
-            await knex.transaction(async (trx) => {
-                await trx("dishes").where({ id }).update(userdish);
-
-                await trx("ingredients").where({ user_id, dish_id: id }).del();
-
-                if (ingredients) {
-                    const newIngredients = ingredients.map((ingredient) => ({
-                    user_id,
-                    dish_id: id,
-                    name: ingredient,
-                    }));
-                    await trx("ingredients").insert(newIngredients);
-                }
+        // Inserir ingredientes, se houver
+        let ingredientsInsert;
+        if (ingredientsArray.length > 0) {
+            ingredientsInsert = ingredientsArray.map(ingredient => {
+            return {
+                dish_id: dish.id,
+                name: ingredient
+            };
             });
-            return response.status(200).json({ message: "Dish updated successfully" });
-        } catch (error) {
-            return response.status(500).json({ error: "An error occurred during the update", details: error.message });
+
+            // Deletar ingredientes antigos e inserir os novos
+            await knex("ingredients").where({ dish_id: id }).delete();
+            await knex("ingredients").insert(ingredientsInsert);
         }
-    }
+
+        return response.status(200).json({ message: "Dish updated successfully" });
+        }
 
     async index(request, response) {
         try {
@@ -148,9 +156,9 @@ class DishesController {
 
     async delete(request, response) {
         try {
-            const user_id = request.user.id
-            
-            await knex("dishes").where({ user_id }).delete()
+            const { id } = request.params
+
+            await knex("dishes").where({ id }).delete()
             
             return response.json()
         } catch (error) {

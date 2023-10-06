@@ -4,12 +4,20 @@ const uploadConfig = require("../configs/upload")
 
 class DiskStorage {
     async saveFile(file) {
-        await fs.promises.rename(
-            path.resolve(uploadConfig.TMP_FOLDER, file),
-            path.resolve(uploadConfig.UPLOADS_FOLDER, file)
-        )
+        const sourcePath = path.resolve(uploadConfig.TMP_FOLDER, file);
+        const targetPath = path.resolve(uploadConfig.UPLOADS_FOLDER, file);
 
-        return file
+        try {
+            await fs.promises.access(sourcePath);
+        } catch (error) {
+            // O arquivo não existe, você pode lidar com isso aqui
+            console.error(`Arquivo não encontrado: ${sourcePath}`);
+            return null; // Retorna null ou lança um erro, dependendo da sua lógica
+        }
+
+        await fs.promises.rename(sourcePath, targetPath);
+
+        return file;
     }
 
     async deleteFile(file) {
