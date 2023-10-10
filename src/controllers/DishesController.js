@@ -6,7 +6,6 @@ class DishesController {
     async create(request, response) {
         const { name, description, price, category, ingredients } = request.body
         const user_id = request.user.id
-        console.log(request)
 
         const checkDishAlreadyExists = await knex("dishes").where({name}).first();
     

@@ -10,9 +10,8 @@ class DiskStorage {
         try {
             await fs.promises.access(sourcePath);
         } catch (error) {
-            // O arquivo não existe, você pode lidar com isso aqui
             console.error(`Arquivo não encontrado: ${sourcePath}`);
-            return null; // Retorna null ou lança um erro, dependendo da sua lógica
+            return null;
         }
 
         await fs.promises.rename(sourcePath, targetPath);
