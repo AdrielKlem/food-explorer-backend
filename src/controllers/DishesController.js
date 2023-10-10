@@ -9,7 +9,7 @@ class DishesController {
 
         const checkDishAlreadyExists = await knex("dishes").where({name}).first();
     
-        const ingredientsArray = ingredients.split(',');
+        const ingredientsArray = Array.isArray(ingredients) ? ingredients : [ingredients];
 
         if(checkDishAlreadyExists){
             throw new AppError("Este prato já existe no cardápio.")
