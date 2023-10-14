@@ -53,6 +53,9 @@ $ git clone git@github.com:AdrielKlem/food-explorer-frontend.git
 # Instale as dependências necessárias
 $ npm install
 
+# Processar as migrates necessárias
+$ npm run migrate
+
 # Agora inicie o servidor do BackEnd
 $ npm run dev
 ```
