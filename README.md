@@ -38,7 +38,7 @@ As tecnologias que foram na criação do projeto Back-End:
 Clone o projeto para o local desejado em seu computador.
 
 ```bash
-$ git clone git@github.com:AdrielKlem/food-explorer-frontend.git
+$ git clone git@github.com:AdrielKlem/food-explorer-backend.git
 ```
 
 ---
